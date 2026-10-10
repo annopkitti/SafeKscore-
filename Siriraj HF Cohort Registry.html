@@ -1,0 +1,790 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Siriraj HF Cohort Registry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working registry — a summary strip, then a patient ledger; each record opens as a tabbed Case Record Form. */
+:root{
+  --bg:#f6f5f9; --surface:#ffffff; --surface-2:#eeecf4; --fg:#1b1826; --muted:#625c74; --line:#dedae8; --line-strong:#c4bfd3;
+  --accent:#55419c; --accent-ink:#ffffff; --accent-soft:#ebe6f8; --accent-line:#b9ace6;
+  --danger:#b4261f; --danger-soft:#fbe9e7; --warn:#8a5a00; --warn-soft:#fdf1d6; --ok:#1e6f47; --ok-soft:#e1f3e8;
+  --shadow:0 1px 2px rgba(27,24,38,.06),0 8px 24px rgba(27,24,38,.06);
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#14121c; --surface:#1e1b29; --surface-2:#282434; --fg:#ebe8f3; --muted:#a39dba; --line:#302c3f; --line-strong:#4a4460;
+  --accent:#b4a5f0; --accent-ink:#17122b; --accent-soft:#2a2440; --accent-line:#5e519a;
+  --danger:#ff8f85; --danger-soft:#3d1f1d; --warn:#e8b95a; --warn-soft:#3a2d12; --ok:#6fd49c; --ok-soft:#173528;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#14121c; --surface:#1e1b29; --surface-2:#282434; --fg:#ebe8f3; --muted:#a39dba; --line:#302c3f; --line-strong:#4a4460;
+  --accent:#b4a5f0; --accent-ink:#17122b; --accent-soft:#2a2440; --accent-line:#5e519a;
+  --danger:#ff8f85; --danger-soft:#3d1f1d; --warn:#e8b95a; --warn-soft:#3a2d12; --ok:#6fd49c; --ok-soft:#173528;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.45;margin:0;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:600}
+a{color:var(--accent)}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:56px;padding-block:8px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand .mark{width:30px;height:30px;border-radius:7px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--mono);font-weight:500;font-size:13px;flex:none}
+.brand h1{font-size:15px;line-height:1.2}
+.brand .sub{font-size:12px;color:var(--muted)}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav button{border:0;background:none;padding:6px 10px;border-radius:var(--r);color:var(--muted);font-weight:500;cursor:pointer}
+.nav button[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.who img{width:22px;height:22px;border-radius:50%}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.danger{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--r);border:1px solid var(--line-strong);background:var(--surface);cursor:pointer;font-weight:500;white-space:nowrap;line-height:1.2}
+.btn:hover{border-color:var(--accent-line)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:4px 9px;font-size:12px}
+
+/* banners */
+.banner{padding:10px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface-2);margin-block:16px 0;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.banner.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.banner.danger{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
+.banner.info{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.banner .grow{flex:1 1 240px;min-width:0}
+
+/* ledger */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-block:20px 16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat .v{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat .d{font-size:11px;color:var(--muted);margin-top:4px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input[type=search],.toolbar select{padding:7px 10px;border:1px solid var(--line-strong);border-radius:var(--r);background:var(--surface);min-width:0}
+.toolbar input[type=search]{flex:1 1 220px}
+.toolbar .spacer{flex:1}
+.tablewrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2);white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--accent-soft)}
+td.r,th.r{text-align:right}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty h3{color:var(--fg);margin-bottom:6px}
+.empty p{max-width:46ch;margin:0 auto 14px}
+
+/* form */
+.formhead{position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:15;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.formhead .title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
+.formhead .title h2{font-size:18px}
+.formhead .title .num{font-size:16px}
+.formhead .actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.unsaved{font-size:12px;color:var(--warn);font-weight:600}
+.tabs{display:flex;gap:2px;overflow-x:auto;margin-block:14px 0;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tabs button{border:0;background:none;padding:9px 12px;color:var(--muted);font-weight:500;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;font-size:13px}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs button .k{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:6px}
+.panel{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;margin-top:18px}
+@media (max-width:860px){.panel{grid-template-columns:minmax(0,1fr)}}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 8px;min-width:0}
+.sheet h2{font-size:15px;margin-bottom:2px}
+.sheet .lead{font-size:12px;color:var(--muted);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px 16px;margin-bottom:14px}
+.grid .span2{grid-column:span 2}
+.grid .span3{grid-column:1/-1}
+@media (max-width:520px){.grid .span2{grid-column:auto}}
+.f label.lbl,.f .lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.f input[type=text],.f input[type=number],.f input[type=date],.f select,.f textarea{width:100%;padding:7px 9px;border:1px solid var(--line-strong);border-radius:var(--r);background:var(--surface);min-width:0}
+.f input[type=number],.f input[type=date]{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.f textarea{min-height:64px;resize:vertical}
+.f .unit{display:flex;align-items:center;gap:6px}
+.f .unit span{font-size:12px;color:var(--muted);white-space:nowrap}
+.f .hint{font-size:11px;color:var(--muted);margin-top:3px}
+.opts{display:flex;flex-wrap:wrap;gap:4px 12px;padding-top:4px}
+.opts label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:13px}
+.opts input{accent-color:var(--accent);margin:0}
+.req::after{content:" *";color:var(--danger)}
+.derived{font-family:var(--mono);font-size:14px;padding:7px 9px;border-radius:var(--r);background:var(--surface-2);border:1px dashed var(--line-strong);min-height:34px;display:flex;align-items:center}
+.grouphead{grid-column:1/-1;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:8px;border-top:1px solid var(--line);margin-top:4px}
+.grouphead:first-child{border-top:0;padding-top:0;margin-top:0}
+.rowlist{margin-bottom:14px;overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+.rowlist table{min-width:0}
+.rowlist th,.rowlist td{padding:5px 6px;white-space:nowrap}
+.rowlist td:first-child,.rowlist th:first-child{position:sticky;left:0;background:var(--surface);z-index:1;border-right:1px solid var(--line);font-weight:600;font-size:12px}
+.rowlist th:first-child{background:var(--surface-2)}
+.rowlist input[type=number],.rowlist input[type=text],.rowlist input[type=date],.rowlist select{width:100%;min-width:72px;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--surface);font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px}
+.rowlist input[type=date]{min-width:140px}
+.rowlist input[type=text]{min-width:120px;font-family:var(--sans)}
+.rowlist select{font-family:var(--sans);min-width:70px}
+.rowlist input.flag-high{border-color:var(--danger);background:var(--danger-soft);color:var(--danger);font-weight:500}
+.rowlist input.flag-warn{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.rowlist tbody tr{cursor:default}
+.rowlist tbody tr:hover{background:none}
+.rowlist .del{border:0;background:none;color:var(--muted);cursor:pointer;padding:2px 6px;font-size:16px;line-height:1}
+.rowlist .del:hover{color:var(--danger)}
+.listfoot{display:flex;gap:8px;align-items:center;padding:8px;border-top:1px solid var(--line);position:sticky;left:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.card h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:600}
+.kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:13px}
+.kv .num{text-align:right}
+.crit{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.crit div{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.crit .dot{width:9px;height:9px;border-radius:50%;background:var(--line-strong);flex:none;display:inline-block;margin-right:8px}
+.crit .met .dot{background:var(--danger)}
+.crit .unk{color:var(--muted)}
+.score{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1}
+.hist{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.pagerow{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+[readonly-mode] .f input,[readonly-mode] .f select,[readonly-mode] .f textarea,[readonly-mode] .rowlist input,[readonly-mode] .rowlist select{pointer-events:none;opacity:.8}
+[readonly-mode] .listfoot,[readonly-mode] .rowlist .del{display:none}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:var(--r);font-size:13px;box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;max-width:calc(100vw - 32px)}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark">K⁺</div>
+      <div>
+        <h1>Siriraj HF Cohort Registry</h1>
+        <div class="sub">Predictors of hyperkalemia in heart failure patients using spironolactone</div>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Views">
+      <button type="button" id="nav-list" aria-current="page">Patients</button>
+      <button type="button" id="nav-export">Export</button>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banners"></div>
+
+  <section id="view-list">
+    <div class="stats" id="stats"></div>
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Search running number, HN…" aria-label="Search patients">
+      <select id="filter-status" aria-label="Filter by status">
+        <option value="">All statuses</option>
+        <option>In progress</option>
+        <option>Complete</option>
+        <option>Needs review</option>
+      </select>
+      <select id="filter-outcome" aria-label="Filter by outcome">
+        <option value="">All outcomes</option>
+        <option value="hyperk">Hyperkalemia</option>
+        <option value="nohyperk">No hyperkalemia</option>
+        <option value="mace">MACE</option>
+        <option value="death">Death</option>
+        <option value="ltfu">Lost to follow-up</option>
+      </select>
+      <span class="spacer"></span>
+      <button type="button" class="btn primary" id="btn-new">+ New patient</button>
+    </div>
+    <div class="tablewrap">
+      <table id="ledger">
+        <thead><tr>
+          <th>Running no.</th><th>Age / sex</th><th>Collected</th>
+          <th class="r">Baseline K</th><th class="r">Baseline eGFR</th><th class="r">Peak follow-up K</th>
+          <th>Outcome</th><th>Status</th><th>Last edited</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden>
+        <h3>No patient records yet</h3>
+        <p>Each record is one Case Record Form: identification, history, serial labs, spironolactone exposure, imaging and outcomes. Everyone with edit access sees new records as they are saved.</p>
+        <button type="button" class="btn primary" id="btn-new-2">+ Add the first patient</button>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:10px">Serum K ≥ 5.5 mEq/L on any follow-up visit is flagged automatically. Dates use the Gregorian year (ค.ศ.): Buddhist year − 543.</p>
+  </section>
+
+  <section id="view-form" hidden>
+    <div class="formhead">
+      <button type="button" class="btn ghost" id="btn-back">← Patients</button>
+      <div class="title">
+        <h2 id="form-title">New patient</h2>
+        <span class="num muted" id="form-sub"></span>
+      </div>
+      <div class="actions">
+        <span class="unsaved" id="unsaved" hidden>Unsaved changes</span>
+        <button type="button" class="btn" id="btn-delete" hidden>Delete</button>
+        <button type="button" class="btn primary" id="btn-save">Save record</button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="panel">
+      <div id="sections"></div>
+      <aside class="side">
+        <div class="card">
+          <h3>Record summary</h3>
+          <div class="kv" id="summary"></div>
+        </div>
+        <div class="card">
+          <h3>SAFE-K criteria at baseline</h3>
+          <div class="crit" id="safek"></div>
+          <p class="small muted" style="margin:10px 0 0">Siriraj Aldosterone-antagonist Forecast of Elevated Potassium. Five baseline items from the study's prediction model; count shown for reference, not a treatment decision.</p>
+        </div>
+        <div class="card">
+          <h3>History</h3>
+          <div class="hist" id="history"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="view-export" hidden>
+    <div class="sheet" style="margin-top:20px">
+      <h2>Export the dataset</h2>
+      <p class="lead">One row per patient, flattened for SPSS, R or Excel. Lab visits become prefixed columns (baseline_k, v1_k … endpoint_k), medication and MACE items become yes/no columns.</p>
+      <div class="kv" id="export-kv" style="max-width:360px;margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button type="button" class="btn primary" id="btn-csv">Save CSV</button>
+        <button type="button" class="btn" id="btn-copy">Copy CSV to clipboard</button>
+      </div>
+      <p class="small muted">The file includes hospital numbers and birth dates. Keep it inside the approved study environment.</p>
+    </div>
+  </section>
+</main>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const YNU=['Yes','No','Unknown'], YN=['Yes','No'];
+const VALVES=['AS','AR','PS','PR','TS','TR','MS','MR'];
+const PROT=['','Neg','1+','2+','3+','4+'];
+
+/* ---------- Case Record Form schema ---------- */
+const LAB_COLS=[
+  {k:'date',l:'Date',t:'date'},
+  {k:'cr',l:'Cr mg/dL',t:'num',step:'0.01'},
+  {k:'bun',l:'BUN mg/dL',t:'num',step:'0.1'},
+  {k:'k',l:'K mEq/L',t:'num',step:'0.1'},
+  {k:'na',l:'Na mEq/L',t:'num',step:'0.1'},
+  {k:'hco3',l:'HCO₃ mEq/L',t:'num',step:'0.1'},
+  {k:'hb',l:'Hb g/dL',t:'num',step:'0.1'},
+  {k:'hct',l:'Hct %',t:'num',step:'0.1'},
+  {k:'egfr',l:'eGFR mL/min/1.73m²',t:'num',step:'0.1'},
+  {k:'hba1c',l:'HbA1c %',t:'num',step:'0.1'},
+  {k:'tc',l:'TC mg/dL',t:'num',step:'1'},
+  {k:'tg',l:'TG mg/dL',t:'num',step:'1'},
+  {k:'hdl',l:'HDL mg/dL',t:'num',step:'1'},
+  {k:'ldl',l:'LDL mg/dL',t:'num',step:'1'},
+  {k:'prot',l:'Proteinuria',t:'sel',opts:PROT},
+  {k:'aki',l:'AKI',t:'sel',opts:['','Yes','No']}
+];
+const LAB_DEFAULT=['Baseline','1st visit / hospitalization','2nd visit / hospitalization','3rd visit / hospitalization','Endpoint'];
+const LAB_KEYS=['baseline','v1','v2','v3','endpoint'];
+const MEDS=[['acei','ACEI'],['arb','ARB'],['arni','ARNI'],['bb','Beta-blocker'],['furosemide','Furosemide'],['otherdiuretic','Other diuretics'],['ccb','CCB'],['asa','ASA'],['p2y12','P2Y12 inhibitor'],['doac','DOAC'],['otheranticoag','Other anticoagulants'],['statin','Statin'],['fibrate','Fibrate'],['otherlipid','Other lipid-lowering agents'],['nitrate','Nitrate'],['antiarrhythmic','Antiarrhythmic agent'],['othermed','Others']];
+const DEVICES=[['pacemaker','Pacemaker'],['icd','ICD'],['otherdevice','Others']];
+const MACE=[['mi','Nonfatal MI'],['stroke','Nonfatal stroke'],['hfh','Hospitalization for heart failure'],['cvdeath','CV mortality']];
+const DEATH_CAUSES=[
+  ['Cardiovascular death',['Sudden cardiac death','Acute myocardial infarction','Heart failure','Ischemic stroke','Intracranial bleeding','Aortic aneurysm','Other cardiovascular']],
+  ['Non-cardiovascular death',['Pulmonary','Respiratory','Renal','Gastrointestinal','Hepatobiliary or pancreatic','Infection / sepsis','Hemorrhage (neither CV bleeding nor stroke)','Trauma','Neurological','Malignancy','Senile','Other non-cardiovascular']],
+  ['Undetermined',['Undetermined']]
+];
+
+const SECTIONS=[
+ {id:'ident',short:'Part 1',title:'Identification & demographics',lead:'Patient identification and demographic information.',fields:[
+   {id:'runningNo',l:'Running number',t:'text',req:true,hint:'Study ID. Must be unique.'},
+   {id:'hn',l:'Hospital number (HN)',t:'text'},
+   {id:'birthDate',l:'Birth date',t:'date'},
+   {id:'collectionDate',l:'Date of collection',t:'date'},
+   {id:'age',l:'Age at collection',t:'derived',unit:'years'},
+   {id:'sex',l:'Gender',t:'radio',o:['Male','Female','Other']},
+   {id:'race',l:'Race',t:'radio',o:['Thai','Other']},
+   {id:'raceOther',l:'Race, specify',t:'text',showIf:d=>d.race==='Other'},
+   {id:'nationality',l:'Nationality',t:'radio',o:['Thai','Other']},
+   {id:'nationalityOther',l:'Nationality, specify',t:'text',showIf:d=>d.nationality==='Other'}
+ ]},
+ {id:'history',short:'Part 1',title:'Heart failure history & examination',lead:'Diagnosis, precipitating factors, vital signs, habits and functional class.',fields:[
+   {id:'hfDxDate',l:'Date of first heart failure diagnosis',t:'date'},
+   {id:'hfCause',l:'Cause / precipitating factors of heart failure',t:'check',span:3,o:['Acute coronary syndrome','Ischemic heart disease','Non-ischemic cardiomyopathy','Salt-water retention','Hypertension / hypertensive emergency','Infection','Cardiac arrhythmia','Mechanical cause','Pulmonary embolism','Cardiac tamponade','Low ejection fraction','Other','Unidentified']},
+   {id:'hfCauseOther',l:'Other cause, specify',t:'text',showIf:d=>(d.hfCause||[]).includes('Other')},
+   {g:'Vital signs & anthropometry'},
+   {id:'hr',l:'Heart rate',t:'num',unit:'/min',step:'1'},
+   {id:'sbp',l:'Systolic BP',t:'num',unit:'mmHg',step:'1'},
+   {id:'dbp',l:'Diastolic BP',t:'num',unit:'mmHg',step:'1'},
+   {id:'weight',l:'Weight',t:'num',unit:'kg',step:'0.1'},
+   {id:'height',l:'Height',t:'num',unit:'cm',step:'0.1'},
+   {id:'bmi',l:'BMI',t:'derived',unit:'kg/m²'},
+   {g:'Habits & functional class'},
+   {id:'smoking',l:'Smoking status',t:'radio',o:['Never','Former','Active']},
+   {id:'packYears',l:'Pack-years',t:'num',step:'0.5',showIf:d=>d.smoking==='Former'||d.smoking==='Active'},
+   {id:'alcohol',l:'Alcohol consumption',t:'radio',o:['Never','Former','Active']},
+   {id:'nyha',l:'NYHA class',t:'radio',o:['I','II','III','IV','Unknown']}
+ ]},
+ {id:'comorb',short:'Part 1',title:'Comorbidities',lead:'Documented before spironolactone initiation.',fields:[
+   {id:'dm',l:'Diabetes mellitus',t:'radio',o:YNU},
+   {id:'dmType',l:'Diabetes type',t:'radio',o:['T1DM','T2DM','Other'],showIf:d=>d.dm==='Yes'},
+   {id:'htn',l:'Hypertension',t:'radio',o:YNU},
+   {id:'dlp',l:'Dyslipidemia',t:'radio',o:YNU},
+   {id:'ckd',l:'Chronic kidney disease',t:'radio',o:YNU},
+   {id:'cad',l:'Coronary artery disease',t:'radio',o:YNU},
+   {id:'pad',l:'Peripheral arterial disease',t:'radio',o:YNU},
+   {id:'arrhythmia',l:'Arrhythmia',t:'radio',o:YNU},
+   {id:'arrhythmiaType',l:'Arrhythmia type',t:'check',span:2,o:['Atrial fibrillation','Atrial flutter','VT','VF','SVT','Heart block'],showIf:d=>d.arrhythmia==='Yes'},
+   {id:'vhd',l:'Valvular heart disease',t:'radio',o:YNU},
+   {id:'vhdType',l:'Valve lesions',t:'check',span:2,o:VALVES,showIf:d=>d.vhd==='Yes'},
+   {id:'stroke',l:'Cerebrovascular disease (stroke)',t:'radio',o:YNU},
+   {id:'strokeType',l:'Stroke type',t:'radio',span:2,o:['Ischemic','Hemorrhagic','Ischemic + hemorrhagic','Unknown'],showIf:d=>d.stroke==='Yes'},
+   {id:'cirrhosis',l:'Cirrhosis',t:'radio',o:YNU},
+   {id:'cancer',l:'Cancer',t:'radio',o:YN},
+   {id:'cancerDetail',l:'Cancer, identify',t:'text',showIf:d=>d.cancer==='Yes'},
+   {id:'otherComorb',l:'Other comorbidities',t:'textarea',span:3}
+ ]},
+ {id:'labs',short:'Part 2',title:'Laboratory investigations',lead:'Baseline must precede spironolactone initiation. Add rows for extra visits or hospitalizations.',fields:[
+   {id:'labs',t:'labs'}
+ ]},
+ {id:'rx',short:'Part 3',title:'Spironolactone & concomitant medication',lead:'Exposure window and medication at the start of spironolactone.',fields:[
+   {id:'spiroStart',l:'Date of initiation',t:'date'},
+   {id:'spiroDose',l:'Initial dose',t:'num',unit:'mg/day',step:'12.5'},
+   {id:'spiroEnd',l:'End of initial dose period',t:'date',hint:'Leave blank if continuing.'},
+   {id:'spiroStop',l:'Spironolactone discontinued',t:'radio',o:YN},
+   {id:'spiroStopReason',l:'Reason for discontinuation',t:'text',span:2,showIf:d=>d.spiroStop==='Yes'},
+   {g:'Dosage adjustments'},
+   {id:'spiroAdj',t:'rows',cols:[{k:'date',l:'Date of adjustment',t:'date'},{k:'dose',l:'Dose mg/day',t:'num',step:'12.5'},{k:'start',l:'From',t:'date'},{k:'end',l:'To',t:'date'}],addLabel:'+ Add adjustment'},
+   {g:'Other current medications at spironolactone start'},
+   {id:'meds',t:'fixed',rows:MEDS,cols:[{k:'use',l:'Taking',t:'sel',opts:['','Yes','No']},{k:'detail',l:'Identify (drug, dose)',t:'text'}]},
+   {g:'Other treatments at baseline'},
+   {id:'devices',t:'fixed',rows:DEVICES,cols:[{k:'use',l:'Present',t:'sel',opts:['','Yes','No']},{k:'detail',l:'Identify',t:'text'}]}
+ ]},
+ {id:'imaging',short:'Part 3',title:'Imaging',lead:'Echocardiography and chest radiograph at enrollment.',fields:[
+   {id:'echo',l:'History of echocardiography',t:'radio',o:YN},
+   {id:'echoDate',l:'Echo date',t:'date',showIf:d=>d.echo==='Yes'},
+   {id:'lvef',l:'LVEF',t:'num',unit:'%',step:'1',showIf:d=>d.echo==='Yes'},
+   {id:'echoValve',l:'Valvular disease on echo',t:'check',span:2,o:VALVES,showIf:d=>d.echo==='Yes'},
+   {g:'Chest x-ray at enrollment'},
+   {id:'cxrDate',l:'CXR date',t:'date'},
+   {id:'ctr',l:'Cardiothoracic ratio',t:'num',step:'0.01'}
+ ]},
+ {id:'outcome',short:'Part 3',title:'Outcomes & endpoint',lead:'Primary outcome is incident hyperkalemia (K ≥ 5.5 mEq/L) after at least two weeks of spironolactone.',fields:[
+   {id:'peakK',l:'Highest follow-up potassium (from labs)',t:'derived',unit:'mEq/L'},
+   {id:'hyperkConfirmed',l:'Hyperkalemia attributable to spironolactone',t:'radio',o:['Yes','No','Pending review'],hint:'≥ 2 weeks of exposure; alternative causes excluded on chart review.'},
+   {id:'hyperkDate',l:'Date of first K ≥ 5.5',t:'date',showIf:d=>d.hyperkConfirmed==='Yes'},
+   {id:'hyperkNote',l:'Hyperkalemia note (management, alternative causes)',t:'text',span:2},
+   {g:'MACE during 1 year of follow-up'},
+   {id:'mace',t:'fixed',rows:MACE,cols:[{k:'occ',l:'Occurred',t:'sel',opts:['','Yes','No']},{k:'date',l:'Date',t:'date'},{k:'detail',l:'Identify',t:'text'}]},
+   {g:'Endpoint of data collection'},
+   {id:'death',l:'Death from any cause',t:'radio',o:YN},
+   {id:'deathDate',l:'Date of death',t:'date',showIf:d=>d.death==='Yes'},
+   {id:'deathCause',l:'Cause of death',t:'selgroup',groups:DEATH_CAUSES,showIf:d=>d.death==='Yes'},
+   {id:'deathCauseOther',l:'Cause of death, specify',t:'text',showIf:d=>d.death==='Yes'&&/Other/.test(d.deathCause||'')},
+   {id:'ltfu',l:'Lost to follow-up',t:'radio',o:YN},
+   {id:'lastVisitDate',l:'Date of last visit',t:'date'},
+   {g:'Record status'},
+   {id:'status',l:'Status',t:'select',o:['In progress','Complete','Needs review']},
+   {id:'notes',l:'Notes for the team',t:'textarea',span:2}
+ ]}
+];
+const FIELD_BY_ID={};SECTIONS.forEach(s=>s.fields.forEach(f=>{if(f.id)FIELD_BY_ID[f.id]=f;}));
+
+/* ---------- state ---------- */
+let db=null,user=null,downloads=null,me=null,canWrite=null,readOnly=false;
+let all=[];            // patient snapshots {id,data,version?}
+let cur=null;          // {id, data, loadedAt, dirty, unsub}
+let activeTab='ident';
+let view='list';
+let unsubList=null;
+const profileCache={};
+
+/* ---------- helpers ---------- */
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function num(v){if(v===''||v==null)return null;const n=Number(v);return isFinite(n)?n:null;}
+function fmtDate(iso){if(!iso)return '';const d=new Date(iso+'T00:00:00');if(isNaN(d))return iso;return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtWhen(ts){if(!ts)return '';const d=new Date(ts);return d.toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function ageAt(birth,at){if(!birth)return null;const b=new Date(birth+'T00:00:00'),a=at?new Date(at+'T00:00:00'):new Date();if(isNaN(b)||isNaN(a))return null;let y=a.getFullYear()-b.getFullYear();const m=a.getMonth()-b.getMonth();if(m<0||(m===0&&a.getDate()<b.getDate()))y--;return y>=0&&y<130?y:null;}
+function bmiOf(w,h){w=num(w);h=num(h);if(!w||!h)return null;return Math.round(w/((h/100)**2)*10)/10;}
+function labRow(d,key){const rows=d.labs||[];return rows.find(r=>r.key===key)||null;}
+function derive(d){
+  const base=labRow(d,'baseline');
+  const follow=(d.labs||[]).filter(r=>r.key!=='baseline');
+  let peak=null,peakLabel='';
+  follow.forEach(r=>{const k=num(r.k);if(k!=null&&(peak==null||k>peak)){peak=k;peakLabel=r.label||r.key;}});
+  const anyMace=(d.mace||[]).some(r=>r.occ==='Yes');
+  const hyperk=d.hyperkConfirmed==='Yes'||(d.hyperkConfirmed!=='No'&&peak!=null&&peak>=5.5);
+  return {
+    age:ageAt(d.birthDate,d.collectionDate),
+    bmi:bmiOf(d.weight,d.height),
+    baseK:base?num(base.k):null, baseEgfr:base?num(base.egfr):null, baseA1c:base?num(base.hba1c):null,
+    peak,peakLabel,hyperk,anyMace,
+    death:d.death==='Yes',ltfu:d.ltfu==='Yes'
+  };
+}
+function safek(d){
+  const x=derive(d);const lvef=num(d.lvef);
+  const items=[
+    ['Diabetes mellitus',d.dm==='Yes'?1:d.dm==='No'||d.dm==='Unknown'?0:null],
+    ['Baseline K > 4.0 mEq/L',x.baseK==null?null:x.baseK>4?1:0],
+    ['Baseline eGFR < 60',x.baseEgfr==null?null:x.baseEgfr<60?1:0],
+    ['Baseline HbA1c > 7 %',x.baseA1c==null?null:x.baseA1c>7?1:0],
+    ['LVEF ≤ 40 %',lvef==null?null:lvef<=40?1:0]
+  ];
+  return {items,met:items.filter(i=>i[1]===1).length,missing:items.filter(i=>i[1]==null).length};
+}
+function blank(){
+  return {runningNo:'',status:'In progress',labs:LAB_KEYS.map((k,i)=>({key:k,label:LAB_DEFAULT[i]})),
+    spiroAdj:[],meds:MEDS.map(m=>({key:m[0]})),devices:DEVICES.map(m=>({key:m[0]})),mace:MACE.map(m=>({key:m[0]}))};
+}
+function normalize(d){
+  const b=blank();const out=Object.assign({},b,d||{});
+  if(!Array.isArray(out.labs)||!out.labs.length)out.labs=b.labs;
+  ['meds','devices','mace'].forEach(k=>{const def=b[k];const have=Array.isArray(out[k])?out[k]:[];out[k]=def.map(r=>Object.assign({},r,have.find(x=>x.key===r.key)||{}));});
+  if(!Array.isArray(out.spiroAdj))out.spiroAdj=[];
+  return out;
+}
+async function names(ids){
+  ids=[...new Set(ids.filter(Boolean))];
+  if(!user||!ids.length)return {};
+  try{const ps=await user.profiles(ids);ids.forEach(i=>{profileCache[i]=ps[i];});return ps;}catch(e){return {};}
+}
+function nameOf(id){const p=profileCache[id];return p&&p.name?p.name:(id===(me&&me.id)?(me.name||'you'):'A colleague');}
+
+/* ---------- list view ---------- */
+function renderStats(){
+  const n=all.length;let hk=0,mace=0,death=0,complete=0,ltfu=0;
+  all.forEach(p=>{const x=derive(p.data);if(x.hyperk)hk++;if(x.anyMace)mace++;if(x.death)death++;if(x.ltfu)ltfu++;if(p.data.status==='Complete')complete++;});
+  const pct=(a,b)=>b?Math.round(a/b*1000)/10+'%':'–';
+  $('#stats').innerHTML=[
+    ['Patients enrolled',n,complete+' complete'],
+    ['Hyperkalemia',hk,pct(hk,n)+' of cohort'],
+    ['MACE at 1 year',mace,pct(mace,n)],
+    ['Deaths',death,pct(death,n)],
+    ['Lost to follow-up',ltfu,pct(ltfu,n)]
+  ].map(s=>`<div class="stat"><div class="eyebrow">${s[0]}</div><div class="v">${s[1]}</div><div class="d">${esc(s[2])}</div></div>`).join('');
+}
+function kCell(v){if(v==null)return '<td class="r num muted">–</td>';const cls=v>=5.5?'danger':v>=5?'warn':'';return `<td class="r num">${cls?`<span class="pill ${cls}">${v.toFixed(1)}</span>`:v.toFixed(1)}</td>`;}
+async function renderList(){
+  renderStats();
+  const q=($('#q').value||'').trim().toLowerCase();const st=$('#filter-status').value;const oc=$('#filter-outcome').value;
+  let rows=all.filter(p=>{
+    const d=p.data,x=derive(d);
+    if(q&&!((d.runningNo||'').toLowerCase().includes(q)||(d.hn||'').toLowerCase().includes(q)))return false;
+    if(st&&(d.status||'In progress')!==st)return false;
+    if(oc==='hyperk'&&!x.hyperk)return false;if(oc==='nohyperk'&&x.hyperk)return false;
+    if(oc==='mace'&&!x.anyMace)return false;if(oc==='death'&&!x.death)return false;if(oc==='ltfu'&&!x.ltfu)return false;
+    return true;
+  });
+  rows.sort((a,b)=>String(a.data.runningNo).localeCompare(String(b.data.runningNo),undefined,{numeric:true}));
+  await names(rows.map(r=>r.data.updatedBy));
+  $('#empty').hidden=all.length>0;
+  $('#ledger').hidden=all.length===0;
+  $('#rows').innerHTML=rows.map(p=>{
+    const d=p.data,x=derive(d);
+    const outs=[];if(x.hyperk)outs.push('<span class="pill danger">Hyper-K</span>');if(x.anyMace)outs.push('<span class="pill warn">MACE</span>');if(x.death)outs.push('<span class="pill">Died</span>');if(x.ltfu)outs.push('<span class="pill">LTFU</span>');
+    const stc=d.status==='Complete'?'ok':d.status==='Needs review'?'warn':'';
+    return `<tr data-id="${esc(p.id)}" tabindex="0">
+      <td class="num"><strong>${esc(d.runningNo||'—')}</strong>${d.hn?`<div class="small muted">HN ${esc(d.hn)}</div>`:''}</td>
+      <td>${x.age!=null?x.age+' y':'–'} ${d.sex?'· '+esc(d.sex[0]):''}</td>
+      <td class="num">${esc(fmtDate(d.collectionDate))||'<span class="muted">–</span>'}</td>
+      ${kCell(x.baseK)}
+      <td class="r num">${x.baseEgfr!=null?(x.baseEgfr<60?`<span class="pill warn">${x.baseEgfr}</span>`:x.baseEgfr):'<span class="muted">–</span>'}</td>
+      ${kCell(x.peak)}
+      <td>${outs.join(' ')||'<span class="muted">–</span>'}</td>
+      <td><span class="pill ${stc}">${esc(d.status||'In progress')}</span></td>
+      <td class="small muted">${esc(nameOf(d.updatedBy))}<br>${esc(fmtWhen(d.updatedAt))}</td>
+    </tr>`;}).join('')||(all.length?'<tr><td colspan="9" class="muted" style="text-align:center;padding:24px">No records match this filter.</td></tr>':'');
+}
+
+/* ---------- form rendering ---------- */
+function fieldHtml(f){
+  if(f.g)return `<div class="grouphead">${esc(f.g)}</div>`;
+  const span=f.span?` span${f.span}`:'';
+  const lbl=`<label class="lbl${f.req?' req':''}" for="f_${f.id}">${esc(f.l)}</label>`;
+  const hint=f.hint?`<div class="hint">${esc(f.hint)}</div>`:'';
+  let inner='';
+  switch(f.t){
+    case 'text':inner=`<input type="text" id="f_${f.id}" data-f="${f.id}" autocomplete="off">`;break;
+    case 'num':inner=`<div class="unit"><input type="number" id="f_${f.id}" data-f="${f.id}" step="${f.step||'any'}" inputmode="decimal">${f.unit?`<span>${esc(f.unit)}</span>`:''}</div>`;break;
+    case 'date':inner=`<input type="date" id="f_${f.id}" data-f="${f.id}">`;break;
+    case 'textarea':inner=`<textarea id="f_${f.id}" data-f="${f.id}"></textarea>`;break;
+    case 'derived':return `<div class="f${span}" data-wrap="${f.id}"><div class="lbl">${esc(f.l)}</div><div class="derived" id="d_${f.id}"><span class="muted">–</span></div>${hint}</div>`;
+    case 'select':inner=`<select id="f_${f.id}" data-f="${f.id}">${f.o.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`;break;
+    case 'selgroup':inner=`<select id="f_${f.id}" data-f="${f.id}"><option value="">—</option>${f.groups.map(g=>`<optgroup label="${esc(g[0])}">${g[1].map(o=>`<option>${esc(o)}</option>`).join('')}</optgroup>`).join('')}</select>`;break;
+    case 'radio':return `<div class="f${span}" data-wrap="${f.id}"><div class="lbl" id="l_${f.id}">${esc(f.l)}</div><div class="opts" role="radiogroup" aria-labelledby="l_${f.id}">${f.o.map((o,i)=>`<label><input type="radio" name="f_${f.id}" id="f_${f.id}_${i}" data-f="${f.id}" value="${esc(o)}">${esc(o)}</label>`).join('')}</div>${hint}</div>`;
+    case 'check':return `<div class="f${span}" data-wrap="${f.id}"><div class="lbl" id="l_${f.id}">${esc(f.l)}</div><div class="opts" role="group" aria-labelledby="l_${f.id}">${f.o.map((o,i)=>`<label><input type="checkbox" id="f_${f.id}_${i}" data-f="${f.id}" data-multi="1" value="${esc(o)}">${esc(o)}</label>`).join('')}</div>${hint}</div>`;
+    case 'labs':case 'rows':case 'fixed':return `<div class="span3" data-wrap="${f.id}"><div id="list_${f.id}"></div></div>`;
+  }
+  return `<div class="f${span}" data-wrap="${f.id}">${lbl}${inner}${hint}</div>`;
+}
+function cellHtml(list,i,c){
+  const id=`L_${list}_${i}_${c.k}`;
+  if(c.t==='date')return `<input type="date" id="${id}" data-list="${list}" data-row="${i}" data-col="${c.k}" aria-label="${esc(c.l)}">`;
+  if(c.t==='num')return `<input type="number" id="${id}" step="${c.step||'any'}" inputmode="decimal" data-list="${list}" data-row="${i}" data-col="${c.k}" aria-label="${esc(c.l)}">`;
+  if(c.t==='sel')return `<select id="${id}" data-list="${list}" data-row="${i}" data-col="${c.k}" aria-label="${esc(c.l)}">${c.opts.map(o=>`<option value="${esc(o)}">${esc(o)||'—'}</option>`).join('')}</select>`;
+  return `<input type="text" id="${id}" data-list="${list}" data-row="${i}" data-col="${c.k}" aria-label="${esc(c.l)}">`;
+}
+function renderList_(f){
+  const host=$('#list_'+f.id);if(!host)return;
+  const rows=cur.data[f.id]||[];
+  let cols,labelOf,removable,foot='';
+  if(f.t==='labs'){cols=LAB_COLS;labelOf=(r,i)=>LAB_KEYS.includes(r.key)?esc(r.label):`<input type="text" id="L_labs_${i}_label" data-list="labs" data-row="${i}" data-col="label" aria-label="Visit label" placeholder="Visit label">`;removable=r=>!LAB_KEYS.includes(r.key);foot=`<div class="listfoot"><button type="button" class="btn sm" data-add="labs">+ Add visit</button><span class="small muted">K ≥ 5.5 is highlighted red, 5.0–5.4 amber.</span></div>`;}
+  else if(f.t==='rows'){cols=f.cols;labelOf=(r,i)=>`#${i+1}`;removable=()=>true;foot=`<div class="listfoot"><button type="button" class="btn sm" data-add="${f.id}">${esc(f.addLabel||'+ Add row')}</button></div>`;}
+  else{cols=f.cols;const lab={};f.rows.forEach(r=>lab[r[0]]=r[1]);labelOf=r=>esc(lab[r.key]||r.key);removable=()=>false;}
+  host.innerHTML=`<div class="rowlist"><table><thead><tr><th>${f.t==='labs'?'Visit':f.t==='rows'?'#':''}</th>${cols.map(c=>`<th>${esc(c.l)}</th>`).join('')}<th></th></tr></thead><tbody>${
+    rows.map((r,i)=>`<tr><td>${labelOf(r,i)}</td>${cols.map(c=>`<td>${cellHtml(f.id,i,c)}</td>`).join('')}<td>${removable(r)?`<button type="button" class="del" data-del="${f.id}" data-row="${i}" aria-label="Remove row">×</button>`:''}</td></tr>`).join('')
+  }</tbody></table>${foot}</div>`;
+  rows.forEach((r,i)=>{cols.concat([{k:'label'}]).forEach(c=>{const el=document.getElementById(`L_${f.id}_${i}_${c.k}`);if(el)el.value=r[c.k]==null?'':r[c.k];});});
+  flagK();
+}
+function flagK(){
+  document.querySelectorAll('[data-list="labs"][data-col="k"]').forEach(el=>{const v=num(el.value);el.classList.toggle('flag-high',v!=null&&v>=5.5);el.classList.toggle('flag-warn',v!=null&&v>=5&&v<5.5);});
+  document.querySelectorAll('[data-list="labs"][data-col="egfr"]').forEach(el=>{const v=num(el.value);el.classList.toggle('flag-warn',v!=null&&v<60);});
+}
+function buildForm(){
+  $('#tabs').innerHTML=SECTIONS.map(s=>`<button type="button" role="tab" id="tab_${s.id}" aria-selected="${s.id===activeTab}" data-tab="${s.id}"><span class="k">${esc(s.short)}</span>${esc(s.title)}</button>`).join('');
+  $('#sections').innerHTML=SECTIONS.map((s,i)=>`<section class="sheet" id="sec_${s.id}" ${s.id===activeTab?'':'hidden'}><h2>${esc(s.title)}</h2><p class="lead">${esc(s.lead)}</p><div class="grid">${s.fields.map(fieldHtml).join('')}</div>
+    <div class="pagerow">${i>0?`<button type="button" class="btn ghost" data-goto="${SECTIONS[i-1].id}">← ${esc(SECTIONS[i-1].title)}</button>`:'<span></span>'}${i<SECTIONS.length-1?`<button type="button" class="btn" data-goto="${SECTIONS[i+1].id}">${esc(SECTIONS[i+1].title)} →</button>`:''}</div></section>`).join('');
+  applyValues();
+}
+function applyValues(){
+  const d=cur.data;
+  document.querySelectorAll('#sections [data-f]').forEach(el=>{
+    const v=d[el.dataset.f];
+    if(el.type==='radio')el.checked=v===el.value;
+    else if(el.type==='checkbox')el.checked=Array.isArray(v)&&v.includes(el.value);
+    else el.value=v==null?'':v;
+  });
+  SECTIONS.forEach(s=>s.fields.forEach(f=>{if(f.t==='labs'||f.t==='rows'||f.t==='fixed')renderList_(f);}));
+  updateDerived();
+}
+function showTab(id){activeTab=id;document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id));SECTIONS.forEach(s=>{$('#sec_'+s.id).hidden=s.id!==id;});const t=$('#tab_'+id);if(t)t.scrollIntoView({block:'nearest',inline:'nearest'});window.scrollTo({top:0});}
+function setDerived(id,v,unit){const el=$('#d_'+id);if(!el)return;el.innerHTML=v==null?'<span class="muted">–</span>':`${esc(v)}${unit?` <span class="muted small">${esc(unit)}</span>`:''}`;}
+function updateDerived(){
+  const d=cur.data,x=derive(d);
+  setDerived('age',x.age,'years');setDerived('bmi',x.bmi,'kg/m²');
+  setDerived('peakK',x.peak==null?null:x.peak.toFixed(1)+(x.peakLabel?' ('+x.peakLabel+')':''),x.peak==null?'':'mEq/L');
+  SECTIONS.forEach(s=>s.fields.forEach(f=>{if(f.showIf){const w=document.querySelector(`#sections [data-wrap="${f.id}"]`);if(w)w.hidden=!f.showIf(d);}}));
+  $('#form-title').textContent=d.runningNo?`Patient ${d.runningNo}`:(cur.id?'Patient record':'New patient');
+  $('#form-sub').textContent=d.hn?'HN '+d.hn:'';
+  // summary
+  const kv=[['Age',x.age!=null?x.age+' y':'–'],['Sex',d.sex||'–'],['NYHA',d.nyha||'–'],['Baseline K',x.baseK!=null?x.baseK.toFixed(1):'–'],['Baseline eGFR',x.baseEgfr!=null?x.baseEgfr:'–'],['LVEF',d.lvef?d.lvef+' %':'–'],['Spironolactone',d.spiroDose?d.spiroDose+' mg/day':'–'],['Peak follow-up K',x.peak!=null?x.peak.toFixed(1):'–']];
+  $('#summary').innerHTML=kv.map(r=>`<span class="muted">${esc(r[0])}</span><span class="num">${esc(r[1])}</span>`).join('')+
+    `<span class="muted">Hyperkalemia</span><span>${x.hyperk?'<span class="pill danger">Yes</span>':d.hyperkConfirmed==='No'?'<span class="pill ok">No</span>':'<span class="pill">Not yet</span>'}</span>`;
+  const s=safek(d);
+  $('#safek').innerHTML=`<div><span class="score">${s.met}<span class="muted" style="font-size:14px">/5</span></span><span class="small muted">${s.missing?s.missing+' item'+(s.missing>1?'s':'')+' missing':'all items recorded'}</span></div>`+
+    s.items.map(i=>`<div class="${i[1]===1?'met':i[1]==null?'unk':''}"><span><span class="dot"></span>${esc(i[0])}</span><span class="small muted">${i[1]===1?'Yes':i[1]===0?'No':'?'}</span></div>`).join('');
+  const h=[];if(d.createdAt)h.push(`Created ${fmtWhen(d.createdAt)} by ${nameOf(d.createdBy)}`);(d.history||[]).slice().reverse().forEach(e=>h.push(`${fmtWhen(e.at)} · ${nameOf(e.by)}`));
+  $('#history').innerHTML=h.length?h.map(t=>`<div>${esc(t)}</div>`).join(''):'<div>Not saved yet.</div>';
+  $('#unsaved').hidden=!cur.dirty;
+}
+function onEdit(el){
+  if(readOnly||!cur)return;
+  const d=cur.data;
+  if(el.dataset.list){const list=d[el.dataset.list];const row=list&&list[+el.dataset.row];if(!row)return;row[el.dataset.col]=el.value;if(el.dataset.list==='labs')flagK();}
+  else if(el.dataset.f){
+    const f=el.dataset.f;
+    if(el.type==='checkbox'&&el.dataset.multi){const arr=Array.isArray(d[f])?d[f].slice():[];const i=arr.indexOf(el.value);if(el.checked&&i<0)arr.push(el.value);if(!el.checked&&i>=0)arr.splice(i,1);d[f]=arr;}
+    else if(el.type==='radio'){if(el.checked)d[f]=el.value;}
+    else d[f]=el.value;
+  } else return;
+  cur.dirty=true;updateDerived();
+}
+
+/* ---------- open / save ---------- */
+function openPatient(id){
+  const p=id?all.find(x=>x.id===id):null;
+  if(cur&&cur.unsub)cur.unsub();
+  cur={id:id||null,data:normalize(p?JSON.parse(JSON.stringify(p.data)):blank()),loadedAt:p?p.data.updatedAt:null,dirty:false,unsub:null};
+  activeTab='ident';
+  switchView('form');
+  buildForm();
+  $('#btn-delete').hidden=!(id&&(me&&me.canEdit));
+  $('#btn-save').hidden=readOnly;
+  clearBanner('conflict');
+  if(id&&db){
+    cur.unsub=db.doc('patients/'+id).onSnapshot(snap=>{
+      if(!cur||cur.id!==id)return;
+      if(!snap.exists){banner('conflict','danger','This record was deleted by a colleague.',[['Back to patients',()=>goList(true)]]);return;}
+      const nd=snap.data();
+      if(snap.metadata.hasPendingWrites)return;
+      if(nd.updatedAt&&nd.updatedAt!==cur.loadedAt){
+        if(cur.dirty)banner('conflict','warn',`${nameOf(nd.updatedBy)} saved a newer version of this record at ${fmtWhen(nd.updatedAt)}. Saving now would overwrite it.`,[['Load their version (discard my edits)',()=>openPatient(id)]]);
+        else {cur.data=normalize(JSON.parse(JSON.stringify(nd)));cur.loadedAt=nd.updatedAt;applyValues();}
+      }
+    },e=>{});
+  }
+}
+function validate(){
+  const d=cur.data;const rn=(d.runningNo||'').trim();
+  if(!rn){showTab('ident');$('#f_runningNo').focus();return 'Running number is required.';}
+  const dup=all.find(p=>p.id!==cur.id&&String(p.data.runningNo||'').trim().toLowerCase()===rn.toLowerCase());
+  if(dup){showTab('ident');$('#f_runningNo').focus();return `Running number ${rn} is already used by another record.`;}
+  const base=labRow(d,'baseline');
+  if(base&&num(base.k)!=null&&num(base.k)>=5.5)return 'Baseline potassium is ≥ 5.5 mEq/L. The protocol excludes patients with hyperkalemia before spironolactone.';
+  return null;
+}
+async function save(){
+  if(!db||!cur||readOnly)return;
+  const err=validate();if(err){toast(err);return;}
+  const btn=$('#btn-save');btn.disabled=true;btn.textContent='Saving…';
+  const now=new Date().toISOString();const uid=me&&me.id||null;
+  const d=JSON.parse(JSON.stringify(cur.data));
+  d.runningNo=String(d.runningNo).trim();
+  if(!cur.id){d.createdAt=now;d.createdBy=uid;}
+  d.updatedAt=now;d.updatedBy=uid;
+  d.history=((d.history||[]).concat([{at:now,by:uid}])).slice(-20);
+  d.hyperkDerived=derive(d).hyperk;
+  try{
+    if(cur.id){await db.doc('patients/'+cur.id).set(d);}
+    else{const ref=await db.collection('patients').add(d);cur.id=ref.id;openAfterCreate(ref.id,d);}
+    cur.data=normalize(d);cur.loadedAt=now;cur.dirty=false;
+    clearBanner('conflict');updateDerived();
+    toast('Record saved');
+  }catch(e){
+    if(e&&e.code==='invalid_argument'&&canWrite==null){setReadOnly('Your access to this registry is view-only. Ask the owner for edit access to record data.');}
+    else if(e&&e.code==='quota_exceeded')toast('The database is full. Contact the study owner.');
+    else toast('Could not save: '+(e&&e.message||'unknown error'));
+  }
+  btn.disabled=false;btn.textContent='Save record';
+}
+function openAfterCreate(id,d){
+  // subscribe to the now-existing doc for conflict detection
+  if(cur.unsub)cur.unsub();
+  cur.unsub=db.doc('patients/'+id).onSnapshot(snap=>{if(!cur||cur.id!==id||!snap.exists||snap.metadata.hasPendingWrites)return;const nd=snap.data();if(nd.updatedAt&&nd.updatedAt!==cur.loadedAt){if(cur.dirty)banner('conflict','warn',`${nameOf(nd.updatedBy)} saved a newer version at ${fmtWhen(nd.updatedAt)}.`,[['Load their version',()=>openPatient(id)]]);else{cur.data=normalize(JSON.parse(JSON.stringify(nd)));cur.loadedAt=nd.updatedAt;applyValues();}}},()=>{});
+  $('#btn-delete').hidden=!(me&&me.canEdit);
+}
+let delArmed=false;
+async function del(){
+  if(!cur||!cur.id||!db)return;
+  const b=$('#btn-delete');
+  if(!delArmed){delArmed=true;b.textContent='Confirm delete';b.classList.add('danger');setTimeout(()=>{delArmed=false;b.textContent='Delete';b.classList.remove('danger');},5000);return;}
+  try{await db.doc('patients/'+cur.id).delete();toast('Record deleted');goList(true);}catch(e){toast('Could not delete: '+(e&&e.message||''));}
+  delArmed=false;b.textContent='Delete';b.classList.remove('danger');
+}
+function goList(force){
+  if(cur&&cur.dirty&&!force){banner('leave','warn','You have unsaved changes on this record.',[['Save and go back',async()=>{await save();if(!cur.dirty)goList(true);}],['Discard changes',()=>goList(true)]]);return;}
+  clearBanner('leave');clearBanner('conflict');
+  if(cur&&cur.unsub)cur.unsub();cur=null;
+  switchView('list');renderList();
+}
+function switchView(v){
+  view=v;$('#view-list').hidden=v!=='list';$('#view-form').hidden=v!=='form';$('#view-export').hidden=v!=='export';
+  $('#nav-list').setAttribute('aria-current',v==='list'||v==='form'?'page':'false');$('#nav-export').setAttribute('aria-current',v==='export'?'page':'false');
+  if(v==='export')renderExport();
+}
+
+/* ---------- banners ---------- */
+function banner(key,kind,text,actions){
+  clearBanner(key);
+  const el=document.createElement('div');el.className='banner '+kind;el.dataset.key=key;
+  el.innerHTML=`<div class="grow">${esc(text)}</div>`;
+  (actions||[]).forEach(a=>{const b=document.createElement('button');b.type='button';b.className='btn sm';b.textContent=a[0];b.addEventListener('click',a[1]);el.appendChild(b);});
+  $('#banners').appendChild(el);
+}
+function clearBanner(key){document.querySelectorAll(`#banners [data-key="${key}"]`).forEach(e=>e.remove());}
+function setReadOnly(msg){readOnly=true;document.body.setAttribute('readonly-mode','');$('#btn-new').hidden=true;$('#btn-new-2').hidden=true;$('#btn-save').hidden=true;banner('ro','info',msg);}
+
+/* ---------- export ---------- */
+function flatten(p){
+  const d=p.data,x=derive(d),s=safek(d);
+  const o={record_id:p.id};
+  const scalar=['runningNo','hn','birthDate','collectionDate','sex','race','raceOther','nationality','nationalityOther','hfDxDate','hr','sbp','dbp','weight','height','smoking','packYears','alcohol','nyha','dm','dmType','htn','dlp','ckd','cad','pad','arrhythmia','vhd','stroke','strokeType','cirrhosis','cancer','cancerDetail','otherComorb','spiroStart','spiroDose','spiroEnd','spiroStop','spiroStopReason','echo','echoDate','lvef','cxrDate','ctr','hyperkConfirmed','hyperkDate','hyperkNote','death','deathDate','deathCause','deathCauseOther','ltfu','lastVisitDate','status','notes'];
+  scalar.forEach(k=>o[k]=d[k]==null?'':d[k]);
+  o.age=x.age==null?'':x.age;o.bmi=x.bmi==null?'':x.bmi;
+  ['hfCause','arrhythmiaType','vhdType','echoValve'].forEach(k=>o[k]=(d[k]||[]).join('; '));
+  (d.labs||[]).forEach((r,i)=>{const pre=LAB_KEYS.includes(r.key)?r.key:'extra'+(i-LAB_KEYS.length+1);if(!LAB_KEYS.includes(r.key))o[pre+'_label']=r.label||'';LAB_COLS.forEach(c=>o[pre+'_'+c.k]=r[c.k]==null?'':r[c.k]);});
+  (d.spiroAdj||[]).forEach((r,i)=>{['date','dose','start','end'].forEach(c=>o['spiro_adj'+(i+1)+'_'+c]=r[c]||'');});
+  (d.meds||[]).forEach(r=>{o['med_'+r.key]=r.use||'';o['med_'+r.key+'_detail']=r.detail||'';});
+  (d.devices||[]).forEach(r=>{o['device_'+r.key]=r.use||'';o['device_'+r.key+'_detail']=r.detail||'';});
+  (d.mace||[]).forEach(r=>{o['mace_'+r.key]=r.occ||'';o['mace_'+r.key+'_date']=r.date||'';o['mace_'+r.key+'_detail']=r.detail||'';});
+  o.peak_followup_k=x.peak==null?'':x.peak;o.hyperkalemia=x.hyperk?1:0;o.any_mace=x.anyMace?1:0;o.safek_items_met=s.met;o.safek_items_missing=s.missing;
+  o.created_at=d.createdAt||'';o.updated_at=d.updatedAt||'';
+  return o;
+}
+function csv(){
+  const rows=all.slice().sort((a,b)=>String(a.data.runningNo).localeCompare(String(b.data.runningNo),undefined,{numeric:true})).map(flatten);
+  const cols=[];rows.forEach(r=>Object.keys(r).forEach(k=>{if(!cols.includes(k))cols.push(k);}));
+  const q=v=>{v=v==null?'':String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  return '﻿'+cols.join(',')+'\r\n'+rows.map(r=>cols.map(c=>q(r[c])).join(',')).join('\r\n')+'\r\n';
+}
+function renderExport(){
+  const hk=all.filter(p=>derive(p.data).hyperk).length;
+  $('#export-kv').innerHTML=[['Patients',all.length],['Hyperkalemia events',hk],['Complete records',all.filter(p=>p.data.status==='Complete').length]].map(r=>`<span class="muted">${r[0]}</span><span class="num">${r[1]}</span>`).join('');
+  $('#btn-csv').hidden=!downloads;
+}
+async function saveCsv(){
+  if(!downloads)return;
+  const name='hf-cohort-'+new Date().toISOString().slice(0,10)+'.csv';
+  try{await downloads.save({filename:name,data:new Blob([csv()],{type:'text/csv'})});toast('CSV saved');}
+  catch(e){const c=e&&e.code;if(c==='declined')return;if(c==='rate_limited')toast('A save prompt is already open.');else toast('Could not save the file here. Use Copy instead.');}
+}
+async function copyCsv(){
+  const text=csv();
+  try{await navigator.clipboard.writeText(text);toast('CSV copied — paste into Excel or a text file');}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('CSV copied');}catch(_){toast('Copy is blocked here. Open the page in a browser.');}ta.remove();}
+}
+
+/* ---------- wiring ---------- */
+$('#sections').addEventListener('input',e=>onEdit(e.target));
+$('#sections').addEventListener('change',e=>onEdit(e.target));
+$('#sections').addEventListener('click',e=>{
+  const add=e.target.closest('[data-add]');if(add&&!readOnly){const id=add.dataset.add;const f=FIELD_BY_ID[id];cur.data[id]=cur.data[id]||[];cur.data[id].push(id==='labs'?{key:'x'+Date.now().toString(36),label:''}:{});cur.dirty=true;renderList_(f);updateDerived();return;}
+  const del=e.target.closest('[data-del]');if(del&&!readOnly){const id=del.dataset.del;cur.data[id].splice(+del.dataset.row,1);cur.dirty=true;renderList_(FIELD_BY_ID[id]);updateDerived();return;}
+  const go=e.target.closest('[data-goto]');if(go)showTab(go.dataset.goto);
+});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
+$('#rows').addEventListener('click',e=>{const tr=e.target.closest('tr[data-id]');if(tr)openPatient(tr.dataset.id);});
+$('#rows').addEventListener('keydown',e=>{if(e.key==='Enter'){const tr=e.target.closest('tr[data-id]');if(tr)openPatient(tr.dataset.id);}});
+$('#btn-new').addEventListener('click',()=>openPatient(null));
+$('#btn-new-2').addEventListener('click',()=>openPatient(null));
+$('#btn-back').addEventListener('click',()=>goList(false));
+$('#btn-save').addEventListener('click',save);
+$('#btn-delete').addEventListener('click',del);
+$('#nav-list').addEventListener('click',()=>{if(view==='form')goList(false);else switchView('list');});
+$('#nav-export').addEventListener('click',()=>{if(view==='form'&&cur&&cur.dirty){goList(false);return;}if(cur&&cur.unsub)cur.unsub();cur=null;switchView('export');});
+['#q','#filter-status','#filter-outcome'].forEach(s=>$(s).addEventListener('input',renderList));
+$('#btn-csv').addEventListener('click',saveCsv);
+$('#btn-copy').addEventListener('click',copyCsv);
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='s'&&view==='form'){e.preventDefault();save();}});
+window.addEventListener('beforeunload',e=>{if(cur&&cur.dirty){e.preventDefault();e.returnValue='';}});
+
+/* ---------- boot ---------- */
+renderStats();$('#empty').hidden=false;$('#ledger').hidden=true;
+(async function boot(){
+  const use=n=>(window.claude&&window.claude.use)?window.claude.use(n).catch(()=>null):Promise.resolve(null);
+  const [d,u,dl]=await Promise.all([use('db'),use('user'),use('downloads')]);
+  db=d;user=u;downloads=dl;
+  if(user){me=await user.me();canWrite=await user.can('data.write');
+    const w=$('#who');w.innerHTML=`<img alt="" src="${esc(me.avatarUrl)}"><span>${esc(me.name||'you')}</span>`;
+    if(canWrite===false)setReadOnly('You can view this registry but not record data. Ask the study owner for edit access.');
+  }
+  if(!db){banner('nodb','info','The shared database is not available in this view. Sign in to claude.ai and open the registry from its shared link to record patients.');$('#btn-new').disabled=true;$('#btn-new-2').disabled=true;return;}
+  unsubList=db.collection('patients').onSnapshot(snap=>{
+    all=snap.docs.map(s=>({id:s.id,data:s.data()||{}}));
+    if(view!=='form')renderList();else renderStats();
+    if(view==='export')renderExport();
+  },e=>{banner('nodb','danger','Lost the connection to the shared database. Reload the page to reconnect.');});
+})();
+})();
+</script>
+
+</body></html>
